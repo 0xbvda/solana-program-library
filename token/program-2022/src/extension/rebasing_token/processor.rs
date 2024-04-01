@@ -1,12 +1,3 @@
-use solana_program::{
-    account_info::{next_account_info, AccountInfo},
-    entrypoint::ProgramResult,
-    msg,
-    program_option::COption,
-    pubkey::Pubkey,
-};
-
-// Remove feature once zk ops syscalls are enabled on all networks
 use super::{instruction::RebasingTokenInstruction, RebasingTokenMint};
 use crate::{
     check_program_account,
@@ -16,6 +7,13 @@ use crate::{
     },
     instruction::{decode_instruction_data, decode_instruction_type},
     pod::PodMint,
+};
+use solana_program::{
+    account_info::{next_account_info, AccountInfo},
+    entrypoint::ProgramResult,
+    msg,
+    program_option::COption,
+    pubkey::Pubkey,
 };
 
 /// Processes an [InitializeMint] instruction.
