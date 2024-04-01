@@ -708,6 +708,12 @@ pub enum TokenInstruction<'a> {
     /// for further details about the extended instructions that share this
     /// instruction prefix
     GroupMemberPointerExtension,
+    /// The common instruction prefix for rebasing token instructions.
+    ///
+    /// See `extension::rebasing_token::instruction::RebasingTokenInstruction`
+    /// for further details about the extended instructions that share this
+    /// instruction prefix
+    RebasingTokenExtension,
 }
 impl<'a> TokenInstruction<'a> {
     /// Unpacks a byte buffer into a
@@ -847,6 +853,7 @@ impl<'a> TokenInstruction<'a> {
             39 => Self::MetadataPointerExtension,
             40 => Self::GroupPointerExtension,
             41 => Self::GroupMemberPointerExtension,
+            42 => Self::RebasingTokenExtension,
             _ => return Err(TokenError::InvalidInstruction.into()),
         })
     }
@@ -1017,6 +1024,9 @@ impl<'a> TokenInstruction<'a> {
             }
             &Self::GroupMemberPointerExtension => {
                 buf.push(41);
+            }
+            &Self::RebasingTokenExtension => {
+                buf.push(42);
             }
         };
         buf
