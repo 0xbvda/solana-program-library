@@ -16,6 +16,8 @@ pub mod processor;
 #[repr(C)]
 #[derive(Clone, Copy, Debug, Default, PartialEq, Pod, Zeroable)]
 pub struct RebasingTokenMint {
+    /// The shares supply
+    supply: u64,
     /// The authority to determine share allocations.
     pub share_authority: OptionalNonZeroPubkey,
 }
