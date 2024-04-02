@@ -20,7 +20,7 @@ use {
             mint_close_authority::MintCloseAuthority,
             non_transferable::{NonTransferable, NonTransferableAccount},
             permanent_delegate::{get_permanent_delegate, PermanentDelegate},
-            reallocate, token_group, token_metadata,
+            reallocate, rebasing_token, token_group, token_metadata,
             transfer_fee::{self, TransferFeeAmount, TransferFeeConfig},
             transfer_hook::{self, TransferHook, TransferHookAccount},
             AccountType, BaseStateWithExtensions, BaseStateWithExtensionsMut, ExtensionType,
@@ -1773,6 +1773,13 @@ impl Processor {
                 }
                 PodTokenInstruction::GroupMemberPointerExtension => {
                     group_member_pointer::processor::process_instruction(
+                        program_id,
+                        accounts,
+                        &input[1..],
+                    )
+                }
+                PodTokenInstruction::RebasingTokenExtension => {
+                    rebasing_token::processor::process_instruction(
                         program_id,
                         accounts,
                         &input[1..],

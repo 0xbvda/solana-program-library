@@ -1,7 +1,9 @@
 //! Extensions available to token mints and accounts
 
+use self::rebasing_token::RebasingTokenAccount;
 #[cfg(feature = "serde-traits")]
 use serde::{Deserialize, Serialize};
+
 use {
     crate::{
         error::TokenError,
@@ -21,6 +23,7 @@ use {
             mint_close_authority::MintCloseAuthority,
             non_transferable::{NonTransferable, NonTransferableAccount},
             permanent_delegate::PermanentDelegate,
+            rebasing_token::RebasingTokenMint,
             transfer_fee::{TransferFeeAmount, TransferFeeConfig},
             transfer_hook::{TransferHook, TransferHookAccount},
         },
@@ -75,6 +78,8 @@ pub mod non_transferable;
 pub mod permanent_delegate;
 /// Utility to reallocate token accounts
 pub mod reallocate;
+/// Rebasing Token extension
+pub mod rebasing_token;
 /// Token-group extension
 pub mod token_group;
 /// Token-metadata extension
@@ -762,6 +767,9 @@ pub trait BaseStateWithExtensionsMut<S: BaseState>: BaseStateWithExtensions<S> {
             // ConfidentialTransfers are currently opt-in only, so this is a no-op for extra safety
             // on InitializeAccount
             ExtensionType::ConfidentialTransferAccount => Ok(()),
+            ExtensionType::RebasingTokenAccount => self
+                .init_extension::<RebasingTokenAccount>(true)
+                .map(|_| ()),
             #[cfg(test)]
             ExtensionType::AccountPaddingTest => {
                 self.init_extension::<AccountPaddingTest>(true).map(|_| ())
@@ -1101,6 +1109,10 @@ pub enum ExtensionType {
     GroupMemberPointer,
     /// Mint contains token group member configurations
     TokenGroupMember,
+    /// Includes Share Authority to caculate balance allocations
+    RebasingTokenMint,
+    /// Includes share amount
+    RebasingTokenAccount,
     /// Test variable-length mint extension
     #[cfg(test)]
     VariableLenMintTest = u16::MAX - 2,
@@ -1181,6 +1193,8 @@ impl ExtensionType {
             ExtensionType::TokenGroup => pod_get_packed_len::<TokenGroup>(),
             ExtensionType::GroupMemberPointer => pod_get_packed_len::<GroupMemberPointer>(),
             ExtensionType::TokenGroupMember => pod_get_packed_len::<TokenGroupMember>(),
+            ExtensionType::RebasingTokenMint => pod_get_packed_len::<RebasingTokenMint>(),
+            ExtensionType::RebasingTokenAccount => pod_get_packed_len::<RebasingTokenAccount>(),
             #[cfg(test)]
             ExtensionType::AccountPaddingTest => pod_get_packed_len::<AccountPaddingTest>(),
             #[cfg(test)]
@@ -1244,7 +1258,8 @@ impl ExtensionType {
             | ExtensionType::GroupPointer
             | ExtensionType::TokenGroup
             | ExtensionType::GroupMemberPointer
-            | ExtensionType::TokenGroupMember => AccountType::Mint,
+            | ExtensionType::TokenGroupMember
+            | ExtensionType::RebasingTokenMint => AccountType::Mint,
             ExtensionType::ImmutableOwner
             | ExtensionType::TransferFeeAmount
             | ExtensionType::ConfidentialTransferAccount
@@ -1252,7 +1267,8 @@ impl ExtensionType {
             | ExtensionType::NonTransferableAccount
             | ExtensionType::TransferHookAccount
             | ExtensionType::CpiGuard
-            | ExtensionType::ConfidentialTransferFeeAmount => AccountType::Account,
+            | ExtensionType::ConfidentialTransferFeeAmount
+            | ExtensionType::RebasingTokenAccount => AccountType::Account,
             #[cfg(test)]
             ExtensionType::VariableLenMintTest => AccountType::Mint,
             #[cfg(test)]
