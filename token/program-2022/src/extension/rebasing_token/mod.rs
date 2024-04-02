@@ -31,3 +31,7 @@ pub struct RebasingTokenAccount {
 impl Extension for RebasingTokenMint {
     const TYPE: ExtensionType = ExtensionType::RebasingTokenMint;
 }
+
+impl Extension for RebasingTokenAccount {
+    const TYPE: ExtensionType = ExtensionType::RebasingTokenAccount;
+}
