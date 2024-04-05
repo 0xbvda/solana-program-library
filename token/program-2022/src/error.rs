@@ -244,8 +244,8 @@ pub enum TokenError {
     #[error("Ciphertext arithmetic failed")]
     CiphertextArithmeticFailed,
     /// Insufficient shares for the operation requested.
-    #[error("Insufficient shares")]
-    InsufficientShares,
+    #[error("Rebase Account in accounts mismatches pubkey in param")]
+    RebaseAccountMismatch,
 }
 impl From<TokenError> for ProgramError {
     fn from(e: TokenError) -> Self {
@@ -421,7 +421,7 @@ impl PrintProgramError for TokenError {
             TokenError::CiphertextArithmeticFailed => {
                 msg!("Ciphertext arithmetic failed")
             }
-            TokenError::InsufficientShares => msg!("Error: insufficient shares"),
+            TokenError::RebaseAccountMismatch => msg!("Error: Rebase Account mismatch"),
         }
     }
 }
