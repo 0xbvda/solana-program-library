@@ -20,7 +20,9 @@ use {
             mint_close_authority::MintCloseAuthority,
             non_transferable::{NonTransferable, NonTransferableAccount},
             permanent_delegate::{get_permanent_delegate, PermanentDelegate},
-            reallocate, token_group, token_metadata,
+            reallocate,
+            rebasing_mint::{self, RebasingMintConfig},
+            token_group, token_metadata,
             transfer_fee::{self, TransferFeeAmount, TransferFeeConfig},
             transfer_hook::{self, TransferHook, TransferHookAccount},
             AccountType, BaseStateWithExtensions, BaseStateWithExtensionsMut, ExtensionType,
@@ -1347,6 +1349,17 @@ impl Processor {
             extension
                 .amount_to_ui_amount(amount, mint.base.decimals, unix_timestamp)
                 .ok_or(ProgramError::InvalidArgument)?
+        } else if let Ok(extension) = mint.get_extension::<RebasingMintConfig>() {
+            let rebase_info = next_account_info(account_info_iter)?;
+
+            extension.check_rebase_account(rebase_info)?;
+
+            extension.try_amount_to_ui_amount(
+                amount,
+                mint.base.decimals,
+                mint.base.supply.into(),
+                rebase_info,
+            )?
         } else {
             crate::amount_to_ui_amount_string_trimmed(amount, mint.base.decimals)
         };
@@ -1367,6 +1380,17 @@ impl Processor {
         let amount = if let Ok(extension) = mint.get_extension::<InterestBearingConfig>() {
             let unix_timestamp = Clock::get()?.unix_timestamp;
             extension.try_ui_amount_into_amount(ui_amount, mint.base.decimals, unix_timestamp)?
+        } else if let Ok(extension) = mint.get_extension::<RebasingMintConfig>() {
+            let rebase_info = next_account_info(account_info_iter)?;
+
+            extension.check_rebase_account(rebase_info)?;
+
+            extension.try_ui_amount_into_amount(
+                ui_amount,
+                mint.base.decimals,
+                mint.base.supply.into(),
+                rebase_info,
+            )?
         } else {
             crate::try_ui_amount_into_amount(ui_amount.to_string(), mint.base.decimals)?
         };
@@ -1777,6 +1801,9 @@ impl Processor {
                         accounts,
                         &input[1..],
                     )
+                }
+                PodTokenInstruction::RebasingTokenExtension => {
+                    rebasing_mint::processor::process_instruction(program_id, accounts, &input[1..])
                 }
             }
         } else if let Ok(instruction) = TokenMetadataInstruction::unpack(input) {
