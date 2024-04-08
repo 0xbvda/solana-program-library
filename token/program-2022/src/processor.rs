@@ -42,7 +42,6 @@ use {
     },
     solana_program::{
         account_info::{next_account_info, AccountInfo},
-        borsh1::try_from_slice_unchecked,
         clock::Clock,
         entrypoint::ProgramResult,
         msg,
@@ -50,7 +49,6 @@ use {
         program_error::ProgramError,
         program_pack::Pack,
         pubkey::Pubkey,
-        stake::state::StakeStateV2,
         system_instruction, system_program,
         sysvar::{rent::Rent, Sysvar},
     },
